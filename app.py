@@ -12,21 +12,30 @@ GROQ_API_KEY=os.getenv('GROQ_API_KEY')
 client = Groq(api_key=GROQ_API_KEY) # Replace with your actual API key
 
 
-# Model Configuration
-model_name = "llama-3.2-90b-vision-preview"
-
 # Initialize Chat History in Session State
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
+# --- Page Tab Title ---
+st.set_page_config(page_icon=":crown:", layout="wide", page_title="ChatBot")
+
 # --- Streamlit UI ---
-st.title("Groq Chatbot")
+st.title("Chat With Me")
 
 # Sidebar for Temperature Slider
 with st.sidebar:
     st.title("Parameters")
-    temperature = st.slider("Temperature", min_value=0.0, max_value=1.0, value=0.3, step=0.01)
+    
+    temperature = st.slider("Temperature", min_value=0.0, max_value=2.0, value=0.3, step=0.01)
+    
+    # Model Selection
+    available_models = ("llama-3.3-70b-versatile", "gemma2-9b-it", "llama-3.2-90b-vision-preview", "mixtral-8x7b-32768")
+    model_name = st.selectbox(
+    "Model Selection",
+    available_models
+)
 
+st.markdown(f"Using Model: **{model_name}**")
 
 # Display Chat History
 for message in st.session_state.chat_history:
@@ -47,12 +56,12 @@ if user_input:
     try:
         chat_completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},  # Optional system message
+                {"role": "system", "content": "You are a helpful assistant."},
                 *([{"role": "user", "content": m["content"]} for m in st.session_state.chat_history if m["role"]=="user"]),
             ],
             model=model_name,
-            temperature=temperature, # Use the slider value here.
-            max_tokens=8192, 
+            temperature=temperature,
+            max_tokens=8192,
         )
         bot_response = chat_completion.choices[0].message.content
 
